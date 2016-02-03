@@ -97,7 +97,7 @@ module Nuget =
     let getAkkaDependency project =
         match project with
         | "Akka.Monitoring" -> []
-        | _ -> ["Akka.Monitoring", release.NugetVersion]
+        | _ -> ["DD.Signed.Akka.Monitoring", release.NugetVersion]
 
     // selected nuget description
     let description project =
@@ -145,7 +145,11 @@ let createNugetPackages _ =
         let releaseDir = projectDir @@ @"bin\Release"
         let packages = projectDir @@ "packages.config"        
         let packageDependencies = if (fileExists packages) then (getDependencies packages) else []
-        let dependencies = packageDependencies @ getAkkaDependency project
+        let dependencies =
+            (packageDependencies @ getAkkaDependency project)
+            |> List.map(
+                fun (dependency, version) -> if (dependency.StartsWith("Akka")) then ("DD.Signed." + dependency, version) else (dependency, version)
+            )
         let releaseVersion = release.NugetVersion
         let desc = description project
 
